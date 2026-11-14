@@ -230,11 +230,10 @@ function camp(): string {
   return `<g transform="translate(${CAMP_X} ${arcY(CAMP_X).toFixed(1)}) rotate(${slopeAt(CAMP_X).toFixed(2)})">${tent}${fire}</g>`
 }
 
-// The family log: a small monospace HUD in the band that appears line by line, holds,
-// fades, and appears again. Its live bits: a status light per member, a step odometer that ticks
+// The family log: a small monospace HUD in the band that stays put. Its live bits: a status light per member, a step odometer that ticks
 // once per stride (0.7 s, the walkers' own step), a bond bar that fills, four pixel blips pulsing in turn.
 // ch: one monospace character at 6px with .04em letter spacing.
-const LOG = { x: BAND.from + 30, y: 300, line: 9, ch: 3.84, cycle: 26 }
+const LOG = { x: BAND.from + 30, y: 300, line: 9, ch: 3.84 }
 // Written as a cipher, so it reads as instrument data at a glance. The key, for whoever knows:
 // 46 4D 4C 59 = "FMLY" in hex. α β γ δ = papa, mama, the little one, the pet; their hex is an
 // initial (50 P, 4D M, 4C L; 3F, a question mark, for the pet) and the arrow their place in line.
@@ -254,7 +253,7 @@ const LOG_ROWS: { label: string; value?: string; cls?: string }[] = [
 ]
 function logRow(i: number, inner: string): string {
   return (
-    `<g class="log-row" style="animation-delay:${(i * 0.32).toFixed(2)}s">` +
+    '<g class="log-row">' +
     `<g transform="translate(0 ${i * LOG.line})">${inner}</g></g>`
   )
 }
@@ -328,11 +327,11 @@ export function horizonScene(): string {
     '.rimglow{fill:none;stroke:var(--rimglow)}' +
     '.family-log{font:500 6px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em;fill:var(--ink);white-space:pre}' +
     '.log-head{opacity:.55}.log-dim{opacity:.7}' +
-    `.log-row{opacity:.62;animation:logType ${LOG.cycle}s ease-out infinite}` +
+    '.log-row{opacity:.62}' +
     '.led{fill:var(--ink);animation:led 2.8s ease-in-out infinite alternate}' +
     '.odo{animation:odo 7s steps(10) infinite}' +
     '.bar-track{fill:var(--ink);opacity:.18}' +
-    `.bar-fill{fill:var(--ink);opacity:.75;transform-box:fill-box;transform-origin:left;animation:barFill ${LOG.cycle}s ease-out infinite}` +
+    '.bar-fill{fill:var(--ink);opacity:.75;transform-box:fill-box;transform-origin:left;animation:barFill 6s ease-out 1 both}' +
     '.heart-px{fill:var(--spark)}.heart{transform-box:fill-box;transform-origin:center;animation:beat 1.6s ease-in-out infinite}' +
     '.cursor{fill:var(--ink);animation:blink 1s steps(1) infinite}' +
     `.walker{animation:${WALK_SECONDS}s linear infinite;fill:var(--sil)}` +
@@ -357,11 +356,9 @@ export function horizonScene(): string {
     '@keyframes glow{0%{opacity:.14}50%{opacity:.24}}' +
     '.grain{opacity:.5}' +
     '@keyframes rain{from{transform:translateY(-60px)}to{transform:translateY(0)}}' +
-    // Each row fades in after the one above, holds, then fades for the next pass. (Opacity only: cheap to repaint.)
-    '@keyframes logType{0%{opacity:0}4%,90%{opacity:.62}96%,100%{opacity:0}}' +
     '@keyframes led{from{opacity:.25}to{opacity:.9}}' +
     `@keyframes odo{from{transform:translateY(0)}to{transform:translateY(${-10 * LOG.line}px)}}` +
-    '@keyframes barFill{0%,8%{transform:scaleX(0)}30%,100%{transform:scaleX(1)}}' +
+    '@keyframes barFill{from{transform:scaleX(0)}to{transform:scaleX(1)}}' +
     '@keyframes beat{0%,60%,100%{transform:scale(.85);opacity:.7}10%{transform:scale(1.25);opacity:1}22%{transform:scale(.95)}32%{transform:scale(1.12)}}' +
     '@keyframes blink{0%{opacity:.8}50%{opacity:0}}' +
     walkKeyframes() +
