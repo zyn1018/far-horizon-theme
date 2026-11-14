@@ -287,10 +287,11 @@ function familyLog(): string {
         `<text class="log-dim" x="${col(21)}" y="0">1.00</text>`
     }
     if (i === 8) {
-      // Four hearts, one per member, beating in turn.
-      const heart = 'M0 -1.2C0 -2.6 -2.1 -2.6 -2.1 -1.1C-2.1 .2 0 1.5 0 2.2C0 1.5 2.1 .2 2.1 -1.1C2.1 -2.6 0 -2.6 0 -1.2Z'
+      // Four pixel hearts, one per member, beating in turn: a 5 x 4 grid of cells.
+      const u = 0.95
+      const heart = cells([[1, 0], [3, 0], [0, 1, 5, 1], [1, 2, 3, 1], [2, 3]], u, 'heart-px')
       extra = [0, 1, 2, 3]
-        .map(k => `<g transform="translate(${col(10) + 2 + k * 6.2} -2.6)"><path class="heart" style="animation-delay:${(k * 0.18).toFixed(2)}s" d="${heart}"/></g>`)
+        .map(k => `<g transform="translate(${col(10) + k * 6.4} -4.6)"><g class="heart" style="animation-delay:${(k * 0.18).toFixed(2)}s">${heart}</g></g>`)
         .join('')
     }
     if (i === 10) {
@@ -332,7 +333,7 @@ export function horizonScene(): string {
     '.odo{animation:odo 7s steps(10) infinite}' +
     '.bar-track{fill:var(--ink);opacity:.18}' +
     `.bar-fill{fill:var(--ink);opacity:.75;transform-box:fill-box;transform-origin:left;animation:barFill ${LOG.cycle}s ease-out infinite}` +
-    '.heart{fill:var(--spark);transform-box:fill-box;transform-origin:center;animation:beat 1.6s ease-in-out infinite}' +
+    '.heart-px{fill:var(--spark)}.heart{transform-box:fill-box;transform-origin:center;animation:beat 1.6s ease-in-out infinite}' +
     '.cursor{fill:var(--ink);animation:blink 1s steps(1) infinite}' +
     `.walker{animation:${WALK_SECONDS}s linear infinite;fill:var(--sil)}` +
     '.walker .limb{fill:none;stroke:var(--sil);stroke-width:1.2;stroke-linecap:round}.walker .pole{stroke-width:1}' +
