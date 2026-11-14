@@ -222,7 +222,9 @@ function camp(): string {
   const flameB = cells([[1, 2, 3, 2], [1, 0, 1, 2], [3, 1, 1, 1]], 2.4, 'flame') + cells([[2, 2, 1, 2]], 2.4, 'flame-core')
   const fire =
     `<g transform="translate(${16 * u} ${-4 * u})">` +
-    '<circle class="fire-glow" cx="6" cy="4" r="20"/>' +
+    // The glow is a dome: cut off at the ground line (y 12 here, where the logs rest), never a full circle.
+    '<clipPath id="fireGround"><rect x="-40" y="-40" width="92" height="52"/></clipPath>' +
+    '<circle class="fire-glow" cx="6" cy="12" r="22" clip-path="url(#fireGround)"/>' +
     `<g class="flame-a">${flameA}</g><g class="flame-b">${flameB}</g>` +
     cells([[0, 4, 5, 1], [0.5, 4.6, 4, 0.6]], 2.4, 'log') +
     '</g>'
