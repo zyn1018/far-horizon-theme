@@ -232,13 +232,13 @@ function camp(): string {
 
 // The family log: a small monospace HUD in the band that appears line by line, holds,
 // fades, and appears again. Its live bits: a status light per member, a step odometer that ticks
-// once per stride (0.7 s, the walkers' own step), a bond bar that fills, four hearts beating in turn.
+// once per stride (0.7 s, the walkers' own step), a bond bar that fills, four pixel blips pulsing in turn.
 // ch: one monospace character at 6px with .04em letter spacing.
 const LOG = { x: BAND.from + 30, y: 300, line: 9, ch: 3.84, cycle: 26 }
 // Written as a cipher, so it reads as instrument data at a glance. The key, for whoever knows:
 // 46 4D 4C 59 = "FMLY" in hex. α β γ δ = papa, mama, the little one, the pet; their hex is an
 // initial (50 P, 4D M, 4C L; 3F, a question mark, for the pet) and the arrow their place in line.
-// Σ.N = how many (three, plus one). Δs = steps. κ = the bond. h×4 = four hearts. ⌂.0 ∞ = home, always.
+// Σ.N = how many (three, plus one). Δs = steps. κ = the bond. h×4 = four hearts, drawn as pixel blips. ⌂.0 ∞ = home, always.
 const LOG_ROWS: { label: string; value?: string; cls?: string }[] = [
   { label: '46 4D 4C 59 // 0E', cls: 'log-head' },
   { label: 'Σ.N', value: '03+01' },
@@ -287,11 +287,11 @@ function familyLog(): string {
         `<text class="log-dim" x="${col(21)}" y="0">1.00</text>`
     }
     if (i === 8) {
-      // Four pixel hearts, one per member, beating in turn: a 5 x 4 grid of cells.
-      const u = 0.95
-      const heart = cells([[1, 0], [3, 0], [0, 1, 5, 1], [1, 2, 3, 1], [2, 3]], u, 'heart-px')
+      // Four pixel diamonds, one per member, pulsing in turn like signal blips.
+      const u = 1.25
+      const heart = cells([[1, 0], [0, 1, 3, 1], [1, 2]], u, 'heart-px')
       extra = [0, 1, 2, 3]
-        .map(k => `<g transform="translate(${col(10) + k * 6.4} -4.6)"><g class="heart" style="animation-delay:${(k * 0.18).toFixed(2)}s">${heart}</g></g>`)
+        .map(k => `<g transform="translate(${col(10) + k * 6.4} -4.4)"><g class="heart" style="animation-delay:${(k * 0.18).toFixed(2)}s">${heart}</g></g>`)
         .join('')
     }
     if (i === 10) {
