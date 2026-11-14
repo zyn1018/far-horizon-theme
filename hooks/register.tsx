@@ -42,7 +42,7 @@ const SCENE_ID = 'far-horizon'
 const LOOK: ThemeSetArgs = {
   colors: theme,
   // Clearer, softer glass so the panels (the sidebars too) let the sky and horizon glow through.
-  backdrop: { scene: SCENE_ID, glass: { blur: 20, opacity: 0.32 } },
+  backdrop: { scene: SCENE_ID, glass: { blur: 12, opacity: 0.36 } },
 }
 
 const SCENE = horizonScene()

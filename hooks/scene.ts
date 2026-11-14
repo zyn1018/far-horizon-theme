@@ -44,10 +44,9 @@ function horizon(): string {
   const lines = Array.from({ length: 24 }, (_, i) => {
     const d = 10 + i * 11 + (i % 3) * 2.5
     const o = (0.42 - i * 0.011).toFixed(3)
-    const drift = i % 3 === 0 ? ` drift${i % 2 ? 'L' : 'R'}` : ''
     return (
-      `<circle class="${i % 2 ? 'stria2' : 'stria'}${drift}" style="opacity:${o};stroke-dasharray:${dashes[i % dashes.length]};` +
-      `stroke-dashoffset:${(i * 37) % 200};animation-duration:${26 + (i % 5) * 7}s" cx="${HZ.cx}" cy="${HZ_CY}" r="${HZ.r - d}"/>`
+      `<circle class="${i % 2 ? 'stria2' : 'stria'}" style="opacity:${o};stroke-dasharray:${dashes[i % dashes.length]};` +
+      `stroke-dashoffset:${(i * 37) % 200}" cx="${HZ.cx}" cy="${HZ_CY}" r="${HZ.r - d}"/>`
     )
   }).join('')
   // A soft glow above the rim from stacked translucent strokes, and a fuzzy dotted edge.
@@ -231,8 +230,8 @@ function camp(): string {
   return `<g transform="translate(${CAMP_X} ${arcY(CAMP_X).toFixed(1)}) rotate(${slopeAt(CAMP_X).toFixed(2)})">${tent}${fire}</g>`
 }
 
-// The family log: a small monospace HUD in the band that types itself out line by line, holds,
-// fades, and types again. Its live bits: a status light per member, a step odometer that ticks
+// The family log: a small monospace HUD in the band that appears line by line, holds,
+// fades, and appears again. Its live bits: a status light per member, a step odometer that ticks
 // once per stride (0.7 s, the walkers' own step), a bond bar that fills, four hearts beating in turn.
 // ch: one monospace character at 6px with .04em letter spacing.
 const LOG = { x: BAND.from + 30, y: 300, line: 9, ch: 3.84, cycle: 26 }
@@ -318,12 +317,11 @@ export function horizonScene(): string {
     '.streaks{stroke:var(--streak);stroke-width:1.6;opacity:.16;animation:rain 14s linear infinite}' +
     '.land{fill:url(#landG)}' +
     '.stria{fill:none;stroke:var(--stria);stroke-width:1.8}.stria2{fill:none;stroke:var(--stria2);stroke-width:2.2}' +
-    '.driftL{animation:driftL 30s linear infinite}.driftR{animation:driftR 30s linear infinite}' +
     '.fuzz{fill:none;stroke:var(--fuzz);stroke-width:5;stroke-dasharray:1.5 2.5;opacity:.7}.fuzz2{stroke-width:3;stroke-dasharray:1 4;opacity:.45}' +
     '.rimglow{fill:none;stroke:var(--rimglow)}' +
     '.family-log{font:500 6px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em;fill:var(--ink);white-space:pre}' +
     '.log-head{opacity:.55}.log-dim{opacity:.7}' +
-    `.log-row{opacity:.62;animation:logType ${LOG.cycle}s steps(14) infinite}` +
+    `.log-row{opacity:.62;animation:logType ${LOG.cycle}s ease-out infinite}` +
     '.led{fill:var(--ink);animation:led 2.8s ease-in-out infinite alternate}' +
     '.odo{animation:odo 7s steps(10) infinite}' +
     '.bar-track{fill:var(--ink);opacity:.18}' +
@@ -350,12 +348,10 @@ export function horizonScene(): string {
     '.flame-a{animation:stepA .5s steps(1) infinite}.flame-b{animation:stepB .5s steps(1) infinite}' +
     '@keyframes glimmer{from{opacity:.35}to{opacity:.7}}' +
     '@keyframes glow{0%{opacity:.14}50%{opacity:.24}}' +
-    '.grain{opacity:.5;animation:jitter .9s steps(3) infinite}' +
-    '@keyframes driftL{to{stroke-dashoffset:-400}}@keyframes driftR{to{stroke-dashoffset:400}}' +
-    '@keyframes jitter{0%{transform:translate(0,0)}33%{transform:translate(3px,2px)}66%{transform:translate(-2px,3px)}}' +
+    '.grain{opacity:.5}' +
     '@keyframes rain{from{transform:translateY(-60px)}to{transform:translateY(0)}}' +
-    // Each row types itself in (a clip sweeping open, stepped like characters), holds, then fades for the next pass.
-    '@keyframes logType{0%{clip-path:inset(0 100% 0 0);opacity:.62}6%{clip-path:inset(0 0 0 0)}90%{clip-path:inset(0 0 0 0);opacity:.62}96%,100%{clip-path:inset(0 0 0 0);opacity:0}}' +
+    // Each row fades in after the one above, holds, then fades for the next pass. (Opacity only: cheap to repaint.)
+    '@keyframes logType{0%{opacity:0}4%,90%{opacity:.62}96%,100%{opacity:0}}' +
     '@keyframes led{from{opacity:.25}to{opacity:.9}}' +
     `@keyframes odo{from{transform:translateY(0)}to{transform:translateY(${-10 * LOG.line}px)}}` +
     '@keyframes barFill{0%,8%{transform:scaleX(0)}30%,100%{transform:scaleX(1)}}' +
