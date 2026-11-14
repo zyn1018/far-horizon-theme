@@ -1,0 +1,5 @@
+{
+  "name": "far-horizon-theme",
+  "owner": { "name": "zyn1018" },
+  "plugins": [{ "name": "theme-example", "source": "./" }]
+}
