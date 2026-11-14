@@ -235,18 +235,22 @@ function camp(): string {
 // once per stride (0.7 s, the walkers' own step), a bond bar that fills, four hearts beating in turn.
 // ch: one monospace character at 6px with .04em letter spacing.
 const LOG = { x: BAND.from + 30, y: 300, line: 9, ch: 3.84, cycle: 26 }
-const LOG_ROWS: { text: string; cls?: string }[] = [
-  { text: 'FAMILY LOG / EXPEDITION', cls: 'log-head' },
-  { text: 'MEMBERS   03 + 01' },
-  { text: 'PAPA      LEAD' },
-  { text: 'LITTLE    MIDDLE' },
-  { text: 'MAMA      REAR' },
-  { text: 'PET       TRAIL' },
-  { text: 'STEPS     00' },
-  { text: 'BOND' },
-  { text: 'HEARTS' },
-  { text: 'HOME      ALWAYS' },
-  { text: '>' },
+// Written as a cipher, so it reads as instrument data at a glance. The key, for whoever knows:
+// 46 4D 4C 59 = "FMLY" in hex. α β γ δ = papa, mama, the little one, the pet; their hex is an
+// initial (50 P, 4D M, 4C L; 3F, a question mark, for the pet) and the arrow their place in line.
+// Σ.N = how many (three, plus one). Δs = steps. κ = the bond. h×4 = four hearts. ⌂.0 ∞ = home, always.
+const LOG_ROWS: { label: string; value?: string; cls?: string }[] = [
+  { label: '46 4D 4C 59 // 0E', cls: 'log-head' },
+  { label: 'Σ.N', value: '03+01' },
+  { label: 'α.50', value: '→01' },
+  { label: 'γ.4C', value: '→02' },
+  { label: 'β.4D', value: '→03' },
+  { label: 'δ.3F', value: '→04' },
+  { label: 'Δs', value: '00' },
+  { label: 'κ' },
+  { label: 'h×4' },
+  { label: '⌂.0', value: '∞' },
+  { label: '>' },
 ]
 function logRow(i: number, inner: string): string {
   return (
@@ -260,7 +264,7 @@ function familyLog(): string {
     let extra = ''
     if (i >= 2 && i <= 5) {
       // A status light per member, each breathing on its own beat.
-      const shape = i === 5 ? `<rect x="${col(18)}" y="-4.6" width="3.6" height="3.6"/>` : `<circle cx="${col(18) + 1.8}" cy="-2.8" r="1.9"/>`
+      const shape = i === 5 ? `<rect x="${col(15)}" y="-4.6" width="3.6" height="3.6"/>` : `<circle cx="${col(15) + 1.8}" cy="-2.8" r="1.9"/>`
       extra = `<g class="led" style="animation-delay:-${(i * 0.9).toFixed(1)}s">${shape}</g>`
     }
     if (i === 6) {
@@ -280,7 +284,7 @@ function familyLog(): string {
       extra =
         `<rect class="bar-track" x="${col(10)}" y="-5" width="${col(10)}" height="3.4"/>` +
         `<rect class="bar-fill" x="${col(10)}" y="-5" width="${col(10)}" height="3.4"/>` +
-        `<text class="log-dim" x="${col(21)}" y="0">100%</text>`
+        `<text class="log-dim" x="${col(21)}" y="0">1.00</text>`
     }
     if (i === 8) {
       // Four hearts, one per member, beating in turn.
@@ -292,8 +296,10 @@ function familyLog(): string {
     if (i === 10) {
       extra = `<rect class="cursor" x="${col(2)}" y="-5.6" width="3" height="6.4"/>`
     }
-    // xml:space keeps the runs of spaces that line the columns up.
-    const text = `<text class="${r.cls ?? ''}" x="0" y="0" xml:space="preserve">${r.text}</text>`
+    // Label and value are separate texts at fixed columns, so symbols of any width stay aligned.
+    const text =
+      `<text class="${r.cls ?? ''}" x="0" y="0" xml:space="preserve">${r.label}</text>` +
+      (r.value === undefined ? '' : `<text x="${col(10)}" y="0">${r.value}</text>`)
     return logRow(i, text + extra)
   }).join('')
   return `<g class="family-log" transform="translate(${LOG.x} ${LOG.y})">${rows}</g>`
