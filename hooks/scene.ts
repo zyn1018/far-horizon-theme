@@ -1,5 +1,5 @@
 // Far Horizon: a film-trailer look. A dusty beige-to-peach sky, a curved steel-blue planet
-// horizon textured like slow water with a soft peach rim, a column of monospace readings,
+// horizon textured like slow water with a soft peach rim, a self-typing family log,
 // a man, a woman and their little girl walking the horizon, a little pixel pet pacing it, and film grain over everything.
 //
 // Like the bundled scenes, the root has viewBox 0 0 1600 1000 and slices to fill the window:
@@ -231,20 +231,73 @@ function camp(): string {
   return `<g transform="translate(${CAMP_X} ${arcY(CAMP_X).toFixed(1)}) rotate(${slopeAt(CAMP_X).toFixed(2)})">${tent}${fire}</g>`
 }
 
-// A column of monospace readings in the band, scrolling up.
-const READ = { x: BAND.from + 30, y: 300, line: 8.5 }
-const READINGS = [
-  'XC3F9A2E1 B-41.7', 'XC3F9A2E2 B-41.9', 'XC3F9A30F B-42.0', 'XD07B1C44 R 0.618',
-  'XD07B1C45 R 0.621', 'XE51A90B2 H-15.0', 'XE51A90B3 H-15.2', 'XF1290A7D N 46.08',
-  'XF1290A7E N 46.11', 'XA88C12F0 Z 3.002', 'XA88C12F1 Z 3.004', 'XB4D6E019 T+0.33',
-  'XB4D6E01A T+0.35', 'XC9017BB2 L 52.10', 'XC9017BB3 L 52.14', 'XD3E2F6A8 Q 7.77',
+// The family log: a small monospace HUD in the band that types itself out line by line, holds,
+// fades, and types again. Its live bits: a status light per member, a step odometer that ticks
+// once per stride (0.7 s, the walkers' own step), a bond bar that fills, four hearts beating in turn.
+// ch: one monospace character at 6px with .04em letter spacing.
+const LOG = { x: BAND.from + 30, y: 300, line: 9, ch: 3.84, cycle: 26 }
+const LOG_ROWS: { text: string; cls?: string }[] = [
+  { text: 'FAMILY LOG / EXPEDITION', cls: 'log-head' },
+  { text: 'MEMBERS   03 + 01' },
+  { text: 'PAPA      LEAD' },
+  { text: 'LITTLE    MIDDLE' },
+  { text: 'MAMA      REAR' },
+  { text: 'PET       TRAIL' },
+  { text: 'STEPS     00' },
+  { text: 'BOND' },
+  { text: 'HEARTS' },
+  { text: 'HOME      ALWAYS' },
+  { text: '>' },
 ]
-function readings(): string {
-  const lines = READINGS.concat(READINGS).map((t, i) => `<text x="0" y="${i * READ.line}">${t}</text>`).join('')
+function logRow(i: number, inner: string): string {
   return (
-    `<svg x="${READ.x}" y="${READ.y}" width="100" height="110" overflow="hidden">` +
-    `<g class="readings" transform="translate(0 9)">${lines}</g></svg>`
+    `<g class="log-row" style="animation-delay:${(i * 0.32).toFixed(2)}s">` +
+    `<g transform="translate(0 ${i * LOG.line})">${inner}</g></g>`
   )
+}
+function familyLog(): string {
+  const col = (c: number) => +(c * LOG.ch).toFixed(2)
+  const rows = LOG_ROWS.map((r, i) => {
+    let extra = ''
+    if (i >= 2 && i <= 5) {
+      // A status light per member, each breathing on its own beat.
+      const shape = i === 5 ? `<rect x="${col(18)}" y="-4.6" width="3.6" height="3.6"/>` : `<circle cx="${col(18) + 1.8}" cy="-2.8" r="1.9"/>`
+      extra = `<g class="led" style="animation-delay:-${(i * 0.9).toFixed(1)}s">${shape}</g>`
+    }
+    if (i === 6) {
+      // Odometer: three rolling digits after "00"; units step every stride.
+      extra = [0, 1, 2]
+        .map(k => {
+          const per = 0.7 * Math.pow(10, 2 - k) // seconds per step for this column
+          const strip = Array.from({ length: 11 }, (_, n) => `<text x="0" y="${n * LOG.line}">${n % 10}</text>`).join('')
+          return (
+            `<svg x="${col(12 + k)}" y="-7" width="${LOG.ch + 0.4}" height="${LOG.line}" overflow="hidden">` +
+            `<g class="odo" style="animation-duration:${(per * 10).toFixed(1)}s"><g transform="translate(0 7)">${strip}</g></g></svg>`
+          )
+        })
+        .join('')
+    }
+    if (i === 7) {
+      extra =
+        `<rect class="bar-track" x="${col(10)}" y="-5" width="${col(10)}" height="3.4"/>` +
+        `<rect class="bar-fill" x="${col(10)}" y="-5" width="${col(10)}" height="3.4"/>` +
+        `<text class="log-dim" x="${col(21)}" y="0">100%</text>`
+    }
+    if (i === 8) {
+      // Four hearts, one per member, beating in turn.
+      const heart = 'M0 -1.2C0 -2.6 -2.1 -2.6 -2.1 -1.1C-2.1 .2 0 1.5 0 2.2C0 1.5 2.1 .2 2.1 -1.1C2.1 -2.6 0 -2.6 0 -1.2Z'
+      extra = [0, 1, 2, 3]
+        .map(k => `<g transform="translate(${col(10) + 2 + k * 6.2} -2.6)"><path class="heart" style="animation-delay:${(k * 0.18).toFixed(2)}s" d="${heart}"/></g>`)
+        .join('')
+    }
+    if (i === 10) {
+      extra = `<rect class="cursor" x="${col(2)}" y="-5.6" width="3" height="6.4"/>`
+    }
+    // xml:space keeps the runs of spaces that line the columns up.
+    const text = `<text class="${r.cls ?? ''}" x="0" y="0" xml:space="preserve">${r.text}</text>`
+    return logRow(i, text + extra)
+  }).join('')
+  return `<g class="family-log" transform="translate(${LOG.x} ${LOG.y})">${rows}</g>`
 }
 
 export function horizonScene(): string {
@@ -268,7 +321,15 @@ export function horizonScene(): string {
     '.driftL{animation:driftL 30s linear infinite}.driftR{animation:driftR 30s linear infinite}' +
     '.fuzz{fill:none;stroke:var(--fuzz);stroke-width:5;stroke-dasharray:1.5 2.5;opacity:.7}.fuzz2{stroke-width:3;stroke-dasharray:1 4;opacity:.45}' +
     '.rimglow{fill:none;stroke:var(--rimglow)}' +
-    '.readings{font:500 6px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em;fill:var(--ink);opacity:.6;animation:read 30s linear infinite}' +
+    '.family-log{font:500 6px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em;fill:var(--ink);white-space:pre}' +
+    '.log-head{opacity:.55}.log-dim{opacity:.7}' +
+    `.log-row{opacity:.62;animation:logType ${LOG.cycle}s steps(14) infinite}` +
+    '.led{fill:var(--ink);animation:led 2.8s ease-in-out infinite alternate}' +
+    '.odo{animation:odo 7s steps(10) infinite}' +
+    '.bar-track{fill:var(--ink);opacity:.18}' +
+    `.bar-fill{fill:var(--ink);opacity:.75;transform-box:fill-box;transform-origin:left;animation:barFill ${LOG.cycle}s ease-out infinite}` +
+    '.heart{fill:var(--spark);transform-box:fill-box;transform-origin:center;animation:beat 1.6s ease-in-out infinite}' +
+    '.cursor{fill:var(--ink);animation:blink 1s steps(1) infinite}' +
     `.walker{animation:${WALK_SECONDS}s linear infinite;fill:var(--sil)}` +
     '.walker .limb{fill:none;stroke:var(--sil);stroke-width:1.2;stroke-linecap:round}.walker .pole{stroke-width:1}' +
     '.hair{animation:hair 2.6s ease-in-out infinite alternate}' +
@@ -293,7 +354,13 @@ export function horizonScene(): string {
     '@keyframes driftL{to{stroke-dashoffset:-400}}@keyframes driftR{to{stroke-dashoffset:400}}' +
     '@keyframes jitter{0%{transform:translate(0,0)}33%{transform:translate(3px,2px)}66%{transform:translate(-2px,3px)}}' +
     '@keyframes rain{from{transform:translateY(-60px)}to{transform:translateY(0)}}' +
-    `@keyframes read{from{transform:translateY(9px)}to{transform:translateY(${9 - READINGS.length * READ.line}px)}}` +
+    // Each row types itself in (a clip sweeping open, stepped like characters), holds, then fades for the next pass.
+    '@keyframes logType{0%{clip-path:inset(0 100% 0 0);opacity:.62}6%{clip-path:inset(0 0 0 0)}90%{clip-path:inset(0 0 0 0);opacity:.62}96%,100%{clip-path:inset(0 0 0 0);opacity:0}}' +
+    '@keyframes led{from{opacity:.25}to{opacity:.9}}' +
+    `@keyframes odo{from{transform:translateY(0)}to{transform:translateY(${-10 * LOG.line}px)}}` +
+    '@keyframes barFill{0%,8%{transform:scaleX(0)}30%,100%{transform:scaleX(1)}}' +
+    '@keyframes beat{0%,60%,100%{transform:scale(.85);opacity:.7}10%{transform:scale(1.25);opacity:1}22%{transform:scale(.95)}32%{transform:scale(1.12)}}' +
+    '@keyframes blink{0%{opacity:.8}50%{opacity:0}}' +
     walkKeyframes() +
     petKeyframes() +
     '@keyframes stepA{0%{opacity:1}50%{opacity:0}}@keyframes stepB{0%{opacity:0}50%{opacity:1}}' +
@@ -323,7 +390,7 @@ export function horizonScene(): string {
     '</defs>' +
     `<rect class="sky" width="${W}" height="${H}"/>` +
     `<g clip-path="url(#streakClip)"><clipPath id="streakClip"><rect x="${BAND.from}" y="0" width="${BAND.to - BAND.from}" height="${H}"/></clipPath><path class="streaks" d="${streaks}"/></g>` +
-    readings() +
+    familyLog() +
     skySparks() +
     horizon() +
     camp() +
