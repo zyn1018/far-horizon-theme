@@ -2,7 +2,7 @@
 
 # Far Horizon
 
-**A film-trailer theme for the Claude desktop app.**
+**A film-trailer theme for Claude Code in the Claude desktop app.**
 
 A dusty peach sky, a curved steel-blue planet horizon, and a small family of hikers walking its edge.
 
@@ -51,8 +51,9 @@ time.
 
 ## Requirements
 
-- The **Claude desktop app** (Code tab) or the **Claude mobile app**. The terminal and the editor
-  extensions don't draw themes.
+- **Claude Code in the Claude desktop app** (the Code tab). Claude Code sessions in the Claude mobile
+  app draw it too. Cowork doesn't support themes yet, and the terminal and the editor extensions
+  don't draw them.
 - `git` on your machine; Claude Code fetches the theme from this GitHub repository.
 
 ## Installation
@@ -74,7 +75,7 @@ session.
 
 ### From the desktop app
 
-`/plugin` does not run in the desktop app. Instead:
+`/plugin` does not run in the desktop app's Code tab. Instead:
 
 1. Click **+** next to the prompt box, then **Plugins**.
 2. **Add marketplace** with `zyn1018/far-horizon-theme`.
