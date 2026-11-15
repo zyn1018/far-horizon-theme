@@ -9,7 +9,7 @@ A dusty peach sky, a curved steel-blue planet horizon, and a small family of hik
 ![Far Horizon backdrop in light mode](screenshots/light.png)
 
 [Features](#features) · [Screenshots](#screenshots) · [Installation](#installation) ·
-[Customization](#customization) · [Development](#development)
+[Customization](#customization) · [Development](#development) · [License](#license)
 
 </div>
 
@@ -53,9 +53,7 @@ time.
 
 - The **Claude desktop app** (Code tab) or the **Claude mobile app**. The terminal and the editor
   extensions don't draw themes.
-- Read access to this GitHub repository, and a git credential for github.com on your machine (an SSH
-  key, or `gh auth login` followed by `gh auth setup-git`). The repository is private, so it installs
-  only for people who have been invited to it.
+- `git` on your machine; Claude Code fetches the theme from this GitHub repository.
 
 ## Installation
 
@@ -154,6 +152,7 @@ smooth under the frosted glass:
 │   ├── make-colors.js     # generated: derives the full palette from a few colors
 │   └── make-colors.d.ts
 ├── screenshots/           # images used in this README
+├── LICENSE
 └── tsconfig.json
 ```
 
@@ -185,3 +184,7 @@ moves the same.
 
 When you change the version yourself, bump `version` in `.claude-plugin/plugin.json`, or installed
 copies won't see the update.
+
+## License
+
+[MIT](LICENSE) © 2026 zyn1018
