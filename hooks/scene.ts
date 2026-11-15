@@ -1,5 +1,6 @@
 // Far Horizon: a film-trailer look. A dusty beige-to-peach sky, a curved steel-blue planet
-// horizon textured like still water with a soft peach rim, a small family log of live readings,
+// horizon rippled like slow water, some ripples drifting, with a soft peach rim, a small family log
+// of live readings with a feed scrolling under it,
 // a man, a woman and their little girl walking the horizon, a little pixel pet pacing it, and film grain over everything.
 //
 // Like the bundled scenes, the root has viewBox 0 0 1600 1000 and slices to fill the window:
@@ -52,23 +53,90 @@ function rimGradient(): string {
   return `<radialGradient id="fh-rimG" gradientUnits="userSpaceOnUse" cx="${HZ.cx}" cy="${HZ_CY}" r="${HZ.r + RIM}">${stops}</radialGradient>`
 }
 
+// A dashed line along the planet's curve, `depth` units inside the rim. Only the stretch that can show
+// in the window is drawn, as an arc from left to right: a whole circle is 20,000 units of dashes to
+// lay out and the window sees about 1,600 of them. `offset` is the dash offset the whole circle would
+// have had, so the dashes fall where they would on the circle. Null when the line is below the window.
+type Arc = { d: string; offset: number }
+function arc(depth: number, period: number, offset: number): Arc | null {
+  const r = HZ.r - depth
+  // Half the width of the stretch that rises above the window's foot.
+  const below = HZ_CY - (H + 2)
+  if (r <= below) {
+    return null
+  }
+  const half = Math.sqrt(r * r - below * below)
+  const from = Math.max(-20, HZ.cx - half)
+  const to = Math.min(W + 20, HZ.cx + half)
+  const y = (x: number) => HZ_CY - Math.sqrt(r * r - (x - HZ.cx) * (x - HZ.cx))
+  // A circle's outline starts at three o'clock and runs clockwise: how far along it the arc begins.
+  const start = r * (2 * Math.PI - Math.acos((from - HZ.cx) / r))
+  return {
+    d: `M${from.toFixed(1)} ${y(from).toFixed(1)}A${r} ${r} 0 0 1 ${to.toFixed(1)} ${y(to).toFixed(1)}`,
+    offset: +((start + offset) % period).toFixed(2),
+  }
+}
+
+// Ripples: broken dashed lines along the curve, light and dark, like the surface of slow water.
+// Every third one drifts along the curve, to the right and to the left by turns, the near ones faster
+// than the far ones. Each slides exactly one period of its own dashes a loop, so no loop has a seam.
+const RIPPLE = { count: 24, every: 3, far: 3, near: 7.5 } // far and near: units a second at the rim and 190 units in
+const RIPPLE_DASHES = ['70 18 28 12', '44 10 90 16', '120 22 36 9', '58 14 18 8 80 20']
+type Ripple = { i: number; arc: Arc; dash: string; drift?: { to: number; seconds: number } }
+const RIPPLES: Ripple[] = Array.from({ length: RIPPLE.count }, (_, i): Ripple | null => {
+  const depth = 10 + i * 11 + (i % 3) * 2.5
+  const dash = RIPPLE_DASHES[i % RIPPLE_DASHES.length]! // always in range
+  const period = dash.split(' ').reduce((sum, n) => sum + +n, 0)
+  const a = arc(depth, period, (i * 37) % 200)
+  if (a === null) {
+    return null
+  }
+  if (i % RIPPLE.every !== 0) {
+    return { i, arc: a, dash }
+  }
+  const speed = RIPPLE.far + (RIPPLE.near - RIPPLE.far) * Math.min(1, (depth - 10) / 190)
+  // A falling offset slides the dashes to the right.
+  const rightward = (i / RIPPLE.every) % 2 === 0
+  return { i, arc: a, dash, drift: { to: +(a.offset + (rightward ? -period : period)).toFixed(2), seconds: +(period / speed).toFixed(1) } }
+}).filter((r): r is Ripple => r !== null)
+
+function rippleKeyframes(): string {
+  return RIPPLES.map(r =>
+    r.drift === undefined ? '' : `@keyframes fh-drift${r.i}{from{stroke-dashoffset:${r.arc.offset}}to{stroke-dashoffset:${r.drift.to}}}`,
+  ).join('')
+}
+
 function horizon(): string {
-  // Ripples: broken dashed lines along the curve, light and dark, like the surface of slow water.
-  const dashes = ['70 18 28 12', '44 10 90 16', '120 22 36 9', '58 14 18 8 80 20']
-  const lines = Array.from({ length: 24 }, (_, i) => {
-    const d = 10 + i * 11 + (i % 3) * 2.5
-    const o = (0.42 - i * 0.011).toFixed(3)
+  const line = (r: Ripple): string => {
+    const o = (0.42 - r.i * 0.011).toFixed(3)
+    // The resting offset is set here, so the ripple sits right where animation never runs.
+    const drift = r.drift === undefined ? '' : `;animation:fh-drift${r.i} ${r.drift.seconds}s linear infinite`
     return (
-      `<circle class="${i % 2 ? 'fh-stria2' : 'fh-stria'}" style="opacity:${o};stroke-dasharray:${dashes[i % dashes.length]};` +
-      `stroke-dashoffset:${(i * 37) % 200}" cx="${HZ.cx}" cy="${HZ_CY}" r="${HZ.r - d}"/>`
+      `<path class="${r.i % 2 ? 'fh-stria2' : 'fh-stria'}" style="opacity:${o};stroke-dasharray:${r.dash};` +
+      `stroke-dashoffset:${r.arc.offset}${drift}" d="${r.arc.d}"/>`
     )
-  }).join('')
+  }
+  // The drifting ripples go last, in a group the browser keeps as a layer of its own (see .fh-drifters):
+  // a moving dash is redrawn every frame, and on the land's layer that redraws the whole land with it.
+  // No ripple overlaps another, so the order among them shows nowhere.
+  const lines =
+    RIPPLES.filter(r => r.drift === undefined).map(line).join('') +
+    `<g class="fh-drifters">${RIPPLES.filter(r => r.drift !== undefined).map(line).join('')}</g>`
+  // A fuzzy dotted edge where the land meets the glow.
+  const fuzz = [
+    { depth: 2, period: 4, cls: 'fh-fuzz' },
+    { depth: 5, period: 5, cls: 'fh-fuzz fh-fuzz2' },
+  ]
+    .map(f => {
+      const a = arc(f.depth, f.period, 0)
+
+      return a === null ? '' : `<path class="${f.cls}" style="stroke-dashoffset:${a.offset}" d="${a.d}"/>`
+    })
+    .join('')
   return (
     `<circle class="fh-rim" cx="${HZ.cx}" cy="${HZ_CY}" r="${HZ.r + RIM / 2}"/>` +
     `<circle class="fh-land" cx="${HZ.cx}" cy="${HZ_CY}" r="${HZ.r}"/>` +
-    // A fuzzy dotted edge where the land meets the glow.
-    `<circle class="fh-fuzz" cx="${HZ.cx}" cy="${HZ_CY}" r="${HZ.r - 2}"/>` +
-    `<circle class="fh-fuzz fh-fuzz2" cx="${HZ.cx}" cy="${HZ_CY}" r="${HZ.r - 5}"/>` +
+    fuzz +
     lines
   )
 }
@@ -341,7 +409,7 @@ function camp(): string {
 }
 
 // The family log: a small monospace HUD in the band that stays put. Its live bits: a status light per member, a step odometer that ticks
-// once per stride of the leader's, a bond bar that fills, four pixel blips pulsing in turn, a blinking cursor.
+// once per stride of the leader's, a bond bar that fills, four pixel blips pulsing in turn, a feed of readings scrolling up, a blinking cursor.
 // ch: one monospace character at 6px with .04em letter spacing.
 const LOG = { x: BAND.from + 30, y: 300, line: 9, ch: 3.84 }
 // Written as a cipher, so it reads as instrument data at a glance. The key, for whoever knows:
@@ -361,10 +429,51 @@ const LOG_ROWS: { label: string; value?: string; cls?: string }[] = [
   { label: '⌂.0', value: '∞' },
   { label: '>' },
 ]
+// The feed: a few lines of readings above the prompt, scrolling up like a terminal's output. A new line
+// is pushed in on every second stride of the leader's, in step with the odometer, and the list comes
+// round again without a seam. Each line: a hex count, who, and one reading, in the log's own cipher and
+// taken from the walk itself. Δ = seconds a step, ↔ = how far behind the leader, κ = the bond.
+const FEED = { row: 10, rows: 4, slide: 0.3 } // the log row it starts at, lines in view, seconds a push takes
+const FEED_TICK = +(2 * STEP.man).toFixed(2)
+const FEED_WHO: [string, Walker][] = [['α.50', 'man'], ['γ.4C', 'girl'], ['β.4D', 'woman'], ['δ.3F', 'pet']]
+const FEED_LINES: [string, string, string][] = [
+  ...FEED_WHO.map(([who, w]): [string, string, string] => [who, 'Δ', STEP[w].toFixed(2).replace(/^0/, '')]),
+  ...FEED_WHO.map(([who, w]): [string, string, string] => [who, '↔', String(GAPS[w]).padStart(2, '0')]),
+  ...FEED_WHO.map(([who]): [string, string, string] => [who, 'κ', '1.00']),
+]
+const FEED_SECONDS = +(FEED_LINES.length * FEED_TICK).toFixed(2)
+// Each line rests, then the column slides up one line, landing on the tick.
+function feedKeyframes(): string {
+  const n = FEED_LINES.length
+  const stops = FEED_LINES.map((_, k) => {
+    const at = `transform:translateY(${-k * LOG.line}px)`
+    const rest = ((k + 1 - FEED.slide / FEED_TICK) / n) * 100
+    return `${((k / n) * 100).toFixed(2)}%,${rest.toFixed(2)}%{${at}}`
+  })
+  return `@keyframes fh-feed{${stops.join('')}100%{transform:translateY(${-n * LOG.line}px)}}`
+}
+function feed(col: (c: number) => number): string {
+  // The list, then its first lines again, so the window is full as the loop closes.
+  const lines = FEED_LINES.concat(FEED_LINES.slice(0, FEED.rows))
+    .map(([who, key, value], n) => {
+      const count = (n % FEED_LINES.length).toString(16).toUpperCase().padStart(2, '0')
+      return (
+        `<text y="${n * LOG.line}"><tspan class="fh-feed-count" x="0">${count}</tspan><tspan x="${col(3)}">${who}</tspan>` +
+        `<tspan x="${col(8)}">${key}</tspan><tspan x="${col(10)}">${value}</tspan></text>`
+      )
+    })
+    .join('')
+  return (
+    `<svg class="fh-feed-window" x="0" y="${FEED.row * LOG.line - 7}" width="${col(26)}" height="${FEED.rows * LOG.line}" overflow="hidden">` +
+    `<g class="fh-feed"><g transform="translate(0 7)">${lines}</g></g></svg>`
+  )
+}
 function logRow(i: number, inner: string): string {
+  // Rows from the feed's on sit below it.
+  const at = i < FEED.row ? i : i + FEED.rows
   return (
     '<g class="fh-log-row">' +
-    `<g transform="translate(0 ${i * LOG.line})">${inner}</g></g>`
+    `<g transform="translate(0 ${at * LOG.line})">${inner}</g></g>`
   )
 }
 function familyLog(): string {
@@ -412,7 +521,7 @@ function familyLog(): string {
       (r.value === undefined ? '' : `<text x="${col(10)}" y="0">${r.value}</text>`)
     return logRow(i, text + extra)
   }).join('')
-  return `<g class="fh-family-log" transform="translate(${LOG.x} ${LOG.y})">${rows}</g>`
+  return `<g class="fh-family-log" transform="translate(${LOG.x} ${LOG.y})">${rows}${feed(col)}</g>`
 }
 
 export function horizonScene(): string {
@@ -433,6 +542,7 @@ export function horizonScene(): string {
     `.fh-streaks{fill:none;stroke:var(--streak);stroke-width:1.6;opacity:.16;animation:fh-rain ${STREAK_SECONDS}s linear infinite}` +
     '.fh-land{fill:url(#fh-landG)}' +
     '.fh-stria{fill:none;stroke:var(--stria);stroke-width:1.8}.fh-stria2{fill:none;stroke:var(--stria2);stroke-width:2.2}' +
+    '.fh-drifters{will-change:transform}' +
     '.fh-fuzz{fill:none;stroke:var(--fuzz);stroke-width:5;stroke-dasharray:1.5 2.5;opacity:.7}.fh-fuzz2{stroke-width:3;stroke-dasharray:1 4;opacity:.45}' +
     `.fh-rim{fill:none;stroke:url(#fh-rimG);stroke-width:${RIM}}` +
     '.fh-family-log{font:500 6px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em;fill:var(--ink);white-space:pre}' +
@@ -444,6 +554,8 @@ export function horizonScene(): string {
     '.fh-bar-fill{fill:var(--ink);opacity:.75;transform-box:fill-box;transform-origin:left;animation:fh-barFill 6s ease-out 1 both}' +
     '.fh-heart-px{fill:var(--spark)}.fh-heart{transform-box:fill-box;transform-origin:center;animation:fh-beat 1.6s ease-in-out infinite}' +
     '.fh-cursor{fill:var(--ink);animation:fh-cursor 1s steps(1) infinite}' +
+    `.fh-feed-window{opacity:.5}.fh-feed-count{fill-opacity:.6}.fh-feed{animation:fh-feed ${FEED_SECONDS}s cubic-bezier(.3,0,.2,1) infinite}` +
+    feedKeyframes() +
     `.fh-walker{animation:${WALK_SECONDS}s linear infinite;fill:var(--sil)}` +
     '.fh-walker .fh-limb{fill:none;stroke:var(--sil);stroke-width:1.2;stroke-linecap:round}.fh-walker .fh-pole{stroke-width:1}' +
     '.fh-hair{animation:fh-hair 2.6s ease-in-out infinite alternate}' +
@@ -474,6 +586,7 @@ export function horizonScene(): string {
     '@keyframes fh-beat{0%,60%,100%{transform:scale(.85);opacity:.7}10%{transform:scale(1.25);opacity:1}22%{transform:scale(.95)}32%{transform:scale(1.12)}}' +
     // The cursor: on for half a second, off for half.
     '@keyframes fh-cursor{0%{opacity:.8}50%{opacity:0}}' +
+    rippleKeyframes() +
     walkKeyframes() +
     petKeyframes() +
     '@keyframes fh-stepA{0%{opacity:1}50%{opacity:0}}@keyframes fh-stepB{0%{opacity:0}50%{opacity:1}}' +

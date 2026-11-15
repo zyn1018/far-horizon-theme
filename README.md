@@ -1,10 +1,10 @@
 # Far Horizon
 
 A film-trailer look for the Claude desktop app (Code tab). A dusty beige-to-peach sky over a curved
-steel-blue planet horizon rippled like slow water. A family of hikers — a man, a woman and a
-little girl, with a small terracotta pixel pet — walks across the horizon past a pixel campsite with
-a crackling fire, each on their own stride, while pixel sparks breathe softly in the sky and a small
-column of readings ticks away.
+steel-blue planet horizon whose ripples drift like slow water. A family of hikers — a man, a woman
+and a little girl, with a small terracotta pixel pet — walks across the horizon past a pixel campsite
+with a crackling fire, each on their own stride, while pixel sparks breathe softly in the sky and a
+small column of readings scrolls by, a line at a time.
 Light and dark modes each get their own palette, and the interface colors follow the scene.
 
 The look draws in the desktop and mobile apps; the terminal and editor extensions don't draw themes.
