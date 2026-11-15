@@ -10,6 +10,29 @@ Light and dark modes each get their own palette, and the interface colors follow
 The look draws in the desktop and mobile apps; the terminal and editor extensions don't draw themes.
 Animations stop when the system's "reduce motion" setting is on.
 
+## Screenshots
+
+The backdrop on its own, as it sits behind the app's frosted panels. Still frames; in the app
+everything moves.
+
+**Light** — a dusty peach sky over the steel-blue horizon.
+
+![Far Horizon backdrop in light mode](screenshots/light.png)
+
+**Dark** — the same scene at deep-blue dusk, with the rim glowing ember-orange.
+
+![Far Horizon backdrop in dark mode](screenshots/dark.png)
+
+**The family** — the pet, the woman, the girl and the man walk the horizon at their own pace, past
+the tent and the crackling campfire. The ripples underfoot drift like slow water.
+
+![Close-up of the family walking past the campsite](screenshots/family.png)
+
+**The family log** — fixed readings for each walker, with a feed below that pushes up a line at a
+time.
+
+![Close-up of the family log readings in dark mode](screenshots/log.png)
+
 ## Install
 
 At the prompt of a Claude Code terminal session:
