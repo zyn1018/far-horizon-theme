@@ -4,6 +4,11 @@
 
 **A film-trailer theme for Claude Code in the Claude desktop app.**
 
+[![Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fzyn1018%2Ffar-horizon-theme%2Fmain%2F.claude-plugin%2Fplugin.json&query=%24.version&label=version&color=3f6f99)](.claude-plugin/plugin.json)
+[![License: MIT](https://img.shields.io/github/license/zyn1018/far-horizon-theme?color=647a3a)](LICENSE)
+[![Last commit](https://img.shields.io/github/last-commit/zyn1018/far-horizon-theme?color=b8862c)](https://github.com/zyn1018/far-horizon-theme/commits/main)
+[![Claude Code: desktop](https://img.shields.io/badge/Claude%20Code-desktop-d4673f)](#requirements)
+
 A dusty peach sky, a curved steel-blue planet horizon, and a small family of hikers walking its edge.
 
 ![Far Horizon backdrop in light mode](screenshots/light.png)
