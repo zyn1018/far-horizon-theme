@@ -122,15 +122,15 @@ function horizon(): string {
   const lines =
     RIPPLES.filter(r => r.drift === undefined).map(line).join('') +
     `<g class="fh-drifters">${RIPPLES.filter(r => r.drift !== undefined).map(line).join('')}</g>`
-  // A fuzzy dotted edge where the land meets the glow.
+  // A smooth lit edge where the land meets the glow: a fine bright line, a softer band inside it.
   const fuzz = [
-    { depth: 2, period: 4, cls: 'fh-fuzz' },
-    { depth: 5, period: 5, cls: 'fh-fuzz fh-fuzz2' },
+    { depth: 4, cls: 'fh-fuzz fh-fuzz2' },
+    { depth: 1, cls: 'fh-fuzz' },
   ]
     .map(f => {
-      const a = arc(f.depth, f.period, 0)
+      const a = arc(f.depth, 1, 0)
 
-      return a === null ? '' : `<path class="${f.cls}" style="stroke-dashoffset:${a.offset}" d="${a.d}"/>`
+      return a === null ? '' : `<path class="${f.cls}" d="${a.d}"/>`
     })
     .join('')
   return (
@@ -543,7 +543,7 @@ export function horizonScene(): string {
     '.fh-land{fill:url(#fh-landG)}' +
     '.fh-stria{fill:none;stroke:var(--stria);stroke-width:1.8}.fh-stria2{fill:none;stroke:var(--stria2);stroke-width:2.2}' +
     '.fh-drifters{will-change:transform}' +
-    '.fh-fuzz{fill:none;stroke:var(--fuzz);stroke-width:5;stroke-dasharray:1.5 2.5;opacity:.7}.fh-fuzz2{stroke-width:3;stroke-dasharray:1 4;opacity:.45}' +
+    '.fh-fuzz{fill:none;stroke:var(--fuzz);stroke-width:2;opacity:.75}.fh-fuzz2{stroke-width:6;opacity:.22}' +
     `.fh-rim{fill:none;stroke:url(#fh-rimG);stroke-width:${RIM}}` +
     '.fh-family-log{font:500 6px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em;fill:var(--ink);white-space:pre}' +
     '.fh-log-head{opacity:.55}.fh-log-dim{opacity:.7}' +
