@@ -56,9 +56,9 @@ export const register: Register = on => {
     }
     const set = await $.theme.set(LOOK)
 
-    if (!set.isDrawn) {
-      $.ui.status(set.reason)
-    }
+    // A theme with a request id stands and draws once a desktop or mobile client attaches,
+    // so only a theme that will not draw at all is worth a status line. Clear any older one.
+    $.ui.status(set.isDrawn || set.requestId !== undefined ? undefined : set.reason)
 
     return next(e)
   })
